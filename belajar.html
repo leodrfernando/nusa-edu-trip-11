@@ -1,0 +1,888 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Belajar Virtual - Nusa EduTrip LMS</title>
+    <style>
+        /* ==========================================================================
+           LMS CONFIGURATION & VARIABLES
+           ========================================================================== */
+        :root {
+            --lms-main-blue: #0284c7;
+            --lms-hover-blue: #0369a1;
+            --lms-bg-gray: #f8fafc;
+            --lms-panel-white: #ffffff;
+            --lms-border-color: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--lms-bg-gray);
+            color: var(--text-dark);
+            padding-bottom: 60px;
+        }
+
+        /* LMS Global Navigation Bar */
+        .lms-navbar {
+            background-color: var(--lms-panel-white);
+            border-bottom: 1px solid var(--lms-border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .lms-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--lms-main-blue);
+            text-decoration: none;
+        }
+
+        .btn-exit-lms {
+            padding: 8px 16px;
+            background-color: #ef4444;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-exit-lms:hover {
+            background-color: #dc2626;
+        }
+
+        /* LMS Workspace Layout Container */
+        .lms-layout {
+            max-width: 1440px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: flex;
+            gap: 30px;
+        }
+
+        /* Sidebar Kurikulum / Silabus (Sisi Kiri) */
+        .lms-sidebar-nav {
+            flex: 1;
+            max-width: 320px;
+            background-color: var(--lms-panel-white);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--lms-border-color);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+
+        .sidebar-header {
+            font-size: 1.1rem;
+            font-weight: 800;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .curriculum-chapter {
+            margin-bottom: 22px;
+        }
+
+        .curriculum-chapter h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--lms-main-blue);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .lesson-list {
+            list-style: none;
+        }
+
+        .lesson-item {
+            margin-bottom: 4px;
+        }
+
+        .lesson-item a {
+            display: block;
+            padding: 10px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .lesson-item a:hover {
+            color: var(--lms-main-blue);
+            background-color: #f0fdf4;
+        }
+
+        .lesson-item a.active-modul {
+            color: white;
+            background-color: var(--lms-main-blue);
+            font-weight: 600;
+        }
+
+        /* Panel Konten Materi Utama (Sisi Kanan) */
+        .lms-main-content {
+            flex: 3;
+            background-color: var(--lms-panel-white);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--lms-border-color);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+
+        .modul-view {
+            display: none;
+        }
+
+        .modul-view.active-page {
+            display: block;
+            animation: slideUpFade 0.3s ease-in-out;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modul-title-section {
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .modul-title-section h1 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            font-weight: 800;
+            margin-top: 5px;
+        }
+
+        .badge-modul {
+            display: inline-block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 100px;
+            text-transform: uppercase;
+        }
+
+        /* Kartu Informasi Geografis & Peta Baru */
+        .geo-integration-card {
+            display: flex;
+            gap: 24px;
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .geo-text-content {
+            flex: 1.5;
+        }
+
+        .geo-map-frame {
+            flex: 1;
+            background-color: #ffffff;
+            border: 1px solid var(--lms-border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .geo-map-frame img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .geo-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .geo-list-details p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .geo-list-details ul {
+            margin-left: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        /* Kotak Workspace Media Multimedia */
+        .lms-media-box {
+            background-color: #f8fafc;
+            border: 1px solid var(--lms-border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 35px;
+        }
+
+        .media-box-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* Rasio Video Konten 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            background-color: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .lms-action-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .lms-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #ffffff;
+            transition: transform 0.2s, background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .lms-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-canva-embed { background-color: #7d2ae8; }
+        .btn-canva-embed:hover { background-color: #631cc2; }
+
+        .btn-quiz-form { background-color: #059669; }
+        .btn-quiz-form:hover { background-color: #047857; }
+
+        .btn-game-play { background-color: #ea580c; }
+        .btn-game-play:hover { background-color: #c2410c; }
+
+        /* Grid Ensiklopedia Kebudayaan */
+        .cultural-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .cultural-card {
+            border: 1px solid var(--lms-border-color);
+            border-radius: 12px;
+            padding: 24px;
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .cultural-card:hover {
+            border-color: var(--lms-main-blue);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .cultural-icon {
+            font-size: 2rem;
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .cultural-card h3 {
+            font-size: 1.15rem;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .cultural-card h4 {
+            font-size: 0.9rem;
+            color: var(--lms-main-blue);
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+
+        .cultural-card p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #334155;
+            margin-bottom: 12px;
+        }
+
+        .cultural-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .cultural-card p strong {
+            color: var(--text-dark);
+        }
+
+        /* Responsive Layout Optimization */
+        @media (max-width: 992px) {
+            .lms-layout { flex-direction: column; }
+            .lms-sidebar-nav { max-width: 100%; position: relative; top: 0; }
+            .geo-integration-card { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="lms-navbar">
+        <a href="#" class="lms-brand">
+            <span>🧭</span> Ruang Virtual - Nusa EduTrip
+        </a>
+        <a href="index.html" class="btn-exit-lms">Keluar Kelas 🚪</a>
+    </nav>
+
+    <div class="lms-layout">
+        
+        <aside class="lms-sidebar-nav">
+            <div class="sidebar-header">📖 Daftar Modul</div>
+            
+            <div class="curriculum-chapter">
+                <h3>Kelompok Wilayah Barat</h3>
+                <ul class="lesson-list">
+                    <li class="lesson-item"><a onclick="switchModul('dki')" id="nav-dki" class="active-modul">1. DKI Jakarta</a></li>
+                    <li class="lesson-item"><a onclick="switchModul('jabar')" id="nav-jabar">2. Jawa Barat (Sunda)</a></li>
+                    <li class="lesson-item"><a onclick="switchModul('banten')" id="nav-banten">3. Banten</a></li>
+                </ul>
+            </div>
+
+            <div class="curriculum-chapter">
+                <h3>Kelompok Wilayah Tengah & Timur</h3>
+                <ul class="lesson-list">
+                    <li class="lesson-item"><a onclick="switchModul('jateng')" id="nav-jateng">4. Jawa Tengah</a></li>
+                    <li class="lesson-item"><a onclick="switchModul('diy')" id="nav-diy">5. DI Yogyakarta</a></li>
+                    <li class="lesson-item"><a onclick="switchModul('jatim')" id="nav-jatim">6. Jawa Timur</a></li>
+                </ul>
+            </div>
+
+            <div class="curriculum-chapter">
+                <h3>Evaluasi & Simulasi</h3>
+                <ul class="lesson-list">
+                    <li class="lesson-item"><a onclick="switchModul('game')" id="nav-game">🎮 Game Edukasi</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="lms-main-content">
+            
+            <div id="page-dki" class="modul-view active-page">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Modul 01</span>
+                    <h1>Daerah Khusus Ibukota (DKI) Jakarta</h1>
+                </div>
+
+                <div class="geo-integration-card">
+                    <div class="geo-text-content">
+                        <div class="geo-card-title">📍 Tinjauan Geografis & Astronomis</div>
+                        <div class="geo-list-details">
+                            <p>Ibu kota negara (sebelum pindah penuh ke IKN) yang terletak di bagian barat-utara Pulau Jawa.</p>
+                            <p><strong>Letak Astronomis:</strong> 5° 19' 12'' – 6° 23' 54'' LS dan 106° 22' 42'' – 106° 58' 18'' BT.</p>
+                            <p><strong>Batas Wilayah Kerja:</strong></p>
+                            <ul>
+                                <li><strong>Utara:</strong> Laut Jawa</li>
+                                <li><strong>Timur:</strong> Provinsi Jawa Barat (Kabupaten Bekasi dan Kota Bekasi)</li>
+                                <li><strong>Selatan:</strong> Provinsi Jawa Barat (Kota Depok dan Kabupaten Bogor)</li>
+                                <li><strong>Barat:</strong> Provinsi Banten (Kabupaten Tangerang dan Kota Tangerang)</li>
+                            </ul>
+                            <p><strong>Karakteristik Fisik:</strong> Dataran rendah regional yang cenderung landai, mencakup wilayah Kepulauan Seribu di Laut Jawa.</p>
+                        </div>
+                    </div>
+                    <div class="geo-map-frame">
+                        <img src="https://i.ibb.co/sd58L2BW/jakarta.gif" alt="Peta Administrasi DKI Jakarta">
+                    </div>
+                </div>
+
+                <div class="lms-media-box">
+                    <div class="media-box-title">📺 Video & Sumber Belajar Eksternal</div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/RX3h3qzobkU" allowfullscreen></iframe>
+                    </div>
+                    <div class="lms-action-row">
+                        <a href="https://www.canva.com/design/DAHI2BWG7y0/r7UR68F2bJadK0zPvOC1xA/view?embed&meta" target="_blank" class="lms-btn btn-canva-embed">🎨 Materi Tambahan Canva</a>
+                        <a href="https://forms.gle/zQ5eKc1uBsGWBXy68" target="_blank" class="lms-btn btn-quiz-form">📝 Mulai Ujian Form Kuis</a>
+                    </div>
+                </div>
+
+                <div class="cultural-grid">
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🏛️</span>
+                        <h3>Rumah Adat</h3>
+                        <h4>Rumah Kebaya</h4>
+                        <p>Rumah ini memiliki ciri khas atap yang menyerupai lipatan kebaya jika dilihat dari samping. Bagian depannya memiliki teras luas (bale) yang melambangkan sifat orang Betawi yang terbuka dan ramah terhadap tamu.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🥋</span>
+                        <h3>Pakaian Adat</h3>
+                        <h4>Kebaya Encim & Sadariah</h4>
+                        <p><strong>Pria (Sadariah):</strong> Menggunakan baju koko putih polos, celana batik longgar, kopiah, dan kain sarung (cukit) yang disandangkan di bahu.</p>
+                        <p><strong>Wanita (Kebaya Encim):</strong> Kebaya dengan kerah berbentuk V dan dihiasi bordir indah di bagian ujungnya, dipadukan dengan kain sarung batik khas Betawi.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🍲</span>
+                        <h3>Makanan Khas</h3>
+                        <h4>Kerak Telor & Soto Betawi</h4>
+                        <p><strong>Kerak Telor:</strong> Terbuat dari beras ketan, telur (ayam/bebek), serundeng (kelapa parut sangrai), dan ebi, yang dimasak di atas wajan tanpa minyak lalu dibalik menghadap arang.</p>
+                        <p><strong>Soto Betawi:</strong> Soto berkuah santan dan susu yang gurih, berisi daging sapi atau jeroan, disajikan dengan emping dan jeruk limau.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🎵</span>
+                        <h3>Lagu Daerah</h3>
+                        <h4>Kicir-Kicir & Jali-Jali</h4>
+                        <p><strong>Kicir-Kicir:</strong> Lagu yang berisi pantun penuh nasihat kehidupan dan bertujuan untuk menghibur hati yang sedih.</p>
+                        <p><strong>Jali-Jali:</strong> Lagu riang yang juga berbentuk pantun, sangat lekat dengan musik pengiring tradisional Betawi, Tanjidor atau Gambang Kromong.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-jabar" class="modul-view">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Modul 02</span>
+                    <h1>Jawa Barat (Sunda)</h1>
+                </div>
+
+                <div class="geo-integration-card">
+                    <div class="geo-text-content">
+                        <div class="geo-card-title">📍 Tinjauan Geografis & Astronomis</div>
+                        <div class="geo-list-details">
+                            <p>Provinsi yang mengelilingi wilayah DKI Jakarta, didominasi oleh pegunungan dan dataran tinggi subur di bagian tengahnya.</p>
+                            <p><strong>Letak Astronomis:</strong> 5° 50' – 7° 50' LS dan 106° 22' – 108° 50' BT.</p>
+                            <p><strong>Batas Wilayah Kerja:</strong></p>
+                            <ul>
+                                <li><strong>Utara:</strong> Laut Jawa dan DKI Jakarta</li>
+                                <li><strong>Timur:</strong> Provinsi Jawa Tengah</li>
+                                <li><strong>Selatan:</strong> Samudra Hindia</li>
+                                <li><strong>Barat:</strong> Provinsi Banten dan DKI Jakarta</li>
+                            </ul>
+                            <p><strong>Karakteristik Fisik:</strong> Bagian utara merupakan dataran rendah pantai, sedangkan bagian tengah dan selatan berupa pegunungan vulkanik aktif.</p>
+                        </div>
+                    </div>
+                    <div class="geo-map-frame">
+                        <img src="https://i.ibb.co/fWfCndc/West-Java-province.png" alt="Peta Provinsi Jawa Barat">
+                    </div>
+                </div>
+
+                <div class="lms-media-box">
+                    <div class="media-box-title">📺 Video & Sumber Belajar Eksternal</div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/z3IRY3cTb90" allowfullscreen></iframe>
+                    </div>
+                    <div class="lms-action-row">
+                        <a href="https://www.canva.com/design/DAHI2Wwhs74/wV5_5Yip5rI5jHDngOQZxw/view?embed&meta" target="_blank" class="lms-btn btn-canva-embed">🎨 Materi Tambahan Canva</a>
+                        <a href="https://forms.gle/beRgFq1tpckKdrSa7" target="_blank" class="lms-btn btn-quiz-form">📝 Mulai Ujian Form Kuis</a>
+                    </div>
+                </div>
+
+                <div class="cultural-grid">
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🏛️</span>
+                        <h3>Rumah Adat</h3>
+                        <h4>Immah Jalopong</h4>
+                        <p>Rumah adat Sunda yang paling populer. Desain atapnya berbentuk pelana yang lurus (seperti guntingan kertas), sangat minimalis, fungsional, dan mencerminkan kehidupan masyarakat Sunda yang bersahaja.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🥋</span>
+                        <h3>Pakaian Adat</h3>
+                        <h4>Bedahan & Kebaya Sunda</h4>
+                        <p><strong>Pria:</strong> Menggunakan baju jas takwa (Bedahan) berwarna putih atau gelap, kain batik (sinjang), dan penutup kepala bernama bendo.</p>
+                        <p><strong>Wanita:</strong> Kebaya Sunda dengan potongan yang pas di badan, dipadukan dengan kain jarik batik, serta hiasan sanggul yang anggun.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🍲</span>
+                        <h3>Makanan Khas</h3>
+                        <h4>Karedok & Seblak</h4>
+                        <p><strong>Karedok:</strong> "Salad" khas Sunda yang menyajikan sayuran mentah segar (kacang panjang, kol, tauge, terong) yang disiram bumbu kacang kental beraroma kencur.</p>
+                        <p><strong>Seblak:</strong> Kerupuk basah yang dimasak dengan kuah pedas kaya kencur, biasanya dipadukan dengan bakso, sosis, atau ceker.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🎵</span>
+                        <h3>Lagu Daerah</h3>
+                        <h4>Manuk Dadali & Bubuy Bulan</h4>
+                        <p><strong>Manuk Dadali:</strong> Lagu berirama gagah yang menceritakan tentang Burung Garuda sebagai lambang keperkasaan dan persatuan bangsa.</p>
+                        <p><strong>Bubuy Bulan:</strong> Lagu berirama syahdu dan melankolis yang menceritakan tentang perasaan rindu dan kesedihan seseorang.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-banten" class="modul-view">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Modul 03</span>
+                    <h1>Banten</h1>
+                </div>
+
+                <div class="geo-integration-card">
+                    <div class="geo-text-content">
+                        <div class="geo-card-title">📍 Tinjauan Geografis & Astronomis</div>
+                        <div class="geo-list-details">
+                            <p>Provinsi yang terletak di ujung paling barat Pulau Jawa, menjadikannya gerbang utama yang menghubungkan Pulau Jawa dan Pulau Sumatera.</p>
+                            <p><strong>Letak Astronomis:</strong> 5° 7' 50'' – 7° 1' 11'' LS dan 105° 1' 11'' – 106° 7' 12'' BT.</p>
+                            <p><strong>Batas Wilayah Kerja:</strong></p>
+                            <ul>
+                                <li><strong>Utara:</strong> Laut Jawa</li>
+                                <li><strong>Timur:</strong> DKI Jakarta dan Provinsi Jawa Barat</li>
+                                <li><strong>Selatan:</strong> Samudra Hindia</li>
+                                <li><strong>Barat:</strong> Selat Sunda</li>
+                            </ul>
+                            <p><strong>Karakteristik Fisik:</strong> Memiliki wilayah pesisir yang panjang di barat dan selatan, serta area berbukit di bagian selatan (Gunung Halimun).</p>
+                        </div>
+                    </div>
+                    <div class="geo-map-frame">
+                        <img src="https://i.ibb.co/hRRcBt70/Prov-Banten.jpg" alt="Peta Provinsi Banten">
+                    </div>
+                </div>
+
+                <div class="lms-media-box">
+                    <div class="media-box-title">📺 Video & Sumber Belajar Eksternal</div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/fvp2Ak6nA48" allowfullscreen></iframe>
+                    </div>
+                    <div class="lms-action-row">
+                        <a href="https://www.canva.com/design/DAHI2Mh3EPI/w611-BF7TNp63r4t9ayowg/view?embed&meta" target="_blank" class="lms-btn btn-canva-embed">🎨 Materi Tambahan Canva</a>
+                        <a href="https://forms.gle/V3PL5SJByLaVT4yN9" target="_blank" class="lms-btn btn-quiz-form">📝 Mulai Ujian Form Kuis</a>
+                    </div>
+                </div>
+
+                <div class="cultural-grid">
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🏛️</span>
+                        <h3>Rumah Adat</h3>
+                        <h4>Sulah Nyanda</h4>
+                        <p>Rumah tradisional suku Baduy yang dibuat sepenuhnya dari bahan alam seperti bambu dan kayu tanpa paku. Atapnya terbuat dari daun nipah. Konstruksinya sengaja mengikuti kontur tanah demi menjaga kelestarian alam.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🥋</span>
+                        <h3>Pakaian Adat</h3>
+                        <h4>Baju Jamang Sangsang</h4>
+                        <p><strong>Suku Baduy Dalam:</strong> Mengenakan pakaian putih polos alami (Jamang Sangsang) tanpa kancing dan kerah, melambangkan kesucian dan kehidupan yang belum terpengaruh dunia luar.</p>
+                        <p><strong>Suku Baduy Luar:</strong> Mengenakan baju berwarna hitam atau biru tua (baju kampret) yang menandakan mereka sudah mulai berinteraksi dengan dunia modern.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🍲</span>
+                        <h3>Makanan Khas</h3>
+                        <h4>Sate Bandeng & Rabeg</h4>
+                        <p><strong>Sate Bandeng:</strong> Kuliner unik di mana daging bandeng dikeluarkan, dipisahkan dari durinya, dihancurkan, dibumbui, lalu dimasukkan kembali ke dalam kulit bandeng untuk dibakar.</p>
+                        <p><strong>Rabeg:</strong> Hidangan mirip semur/tongseng berbahan dasar daging atau jeroan kambing dengan kuah manis gurih yang kaya rempah (pala, kayu manis, jahe).</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🎵</span>
+                        <h3>Lagu Daerah</h3>
+                        <h4>Dayung Sampan & Jereh Bu Guru</h4>
+                        <p><strong>Dayung Sampan:</strong> Menceritakan tentang kehidupan masyarakat pesisir pantai Banten yang bekerja sebagai nelayan.</p>
+                        <p><strong>Jereh Bu Guru:</strong> Lagu anak-anak berbahasa Jawa Serang yang berisi pesan kepatuhan terhadap nasihat guru agar menjadi orang yang berguna.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-jateng" class="modul-view">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Modul 04</span>
+                    <h1>Jawa Tengah</h1>
+                </div>
+
+                <div class="geo-integration-card">
+                    <div class="geo-text-content">
+                        <div class="geo-card-title">📍 Tinjauan Geografis & Astronomis</div>
+                        <div class="geo-list-details">
+                            <p>Provinsi yang berada di jantung Pulau Jawa, membelah pulau ini secara geografis dengan bentang alam yang sangat kontras.</p>
+                            <p><strong>Letak Astronomis:</strong> 5° 40' – 8° 30' LS dan 108° 30' – 111° 30' BT.</p>
+                            <p><strong>Batas Wilayah Kerja:</strong></p>
+                            <ul>
+                                <li><strong>Utara:</strong> Laut Jawa</li>
+                                <li><strong>Timur:</strong> Provinsi Jawa Timur</li>
+                                <li><strong>Selatan:</strong> Samudra Hindia dan DI Yogyakarta</li>
+                                <li><strong>Barat:</strong> Provinsi Jawa Barat</li>
+                            </ul>
+                            <p><strong>Karakteristik Fisik:</strong> Bagian tengah didominasi deretan gunung api (Slamet, Sindoro, Sumbing, Merapi), dengan dataran rendah di pesisir utara (Pantura) dan selatan.</p>
+                        </div>
+                    </div>
+                    <div class="geo-map-frame">
+                        <img src="https://i.ibb.co/tML6bXYy/Peta-administratif-jawa-tengah.gif" alt="Peta Administratif Jawa Tengah">
+                    </div>
+                </div>
+
+                <div class="lms-media-box">
+                    <div class="media-box-title">📺 Video & Sumber Belajar Eksternal</div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/-AbRLLWniWU" allowfullscreen></iframe>
+                    </div>
+                    <div class="lms-action-row">
+                        <a href="https://www.canva.com/design/DAHF97F4sUQ/y93KKu7804xQzbCoeTBnTQ/view?embed&meta" target="_blank" class="lms-btn btn-canva-embed">🎨 Materi Tambahan Canva</a>
+                        <a href="https://forms.gle/pgo92Ds4T8ttVxyc8" target="_blank" class="lms-btn btn-quiz-form">📝 Mulai Ujian Form Kuis</a>
+                    </div>
+                </div>
+
+                <div class="cultural-grid">
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🏛️</span>
+                        <h3>Rumah Adat</h3>
+                        <h4>Joglo</h4>
+                        <p>Ciri utamanya adalah atap berbentuk tajug (seperti gunung) dan ditopang oleh empat tiang utama yang disebut Soko Guru. Rumah Joglo mencerminkan status sosial dan keharmonisan dengan alam.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🥋</span>
+                        <h3>Pakaian Adat</h3>
+                        <h4>Jawi Jangkep & Kebaya Jawa</h4>
+                        <p><strong>Pria (Jawi Jangkep):</strong> Terdiri dari baju beskap motif bunga/polos, kain jarik, blangkon di kepala, dan sebilah keris yang diselipkan di punggung.</p>
+                        <p><strong>Wanita:</strong> Kebaya beludru hitam atau kain katun, dipadukan dengan kain jarik batik (motif parang atau sido mukti), serta rambut yang disanggul rapi (sanggul konde).</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🍲</span>
+                        <h3>Makanan Khas</h3>
+                        <h4>Lunpia Semarang & Garang Asem</h4>
+                        <p><strong>Lunpia:</strong> Jajanan akulturasi budaya Tionghoa dan Jawa, berisi rebung, telur, dan daging ayam/udang yang dibungkus kulit pastri tipis.</p>
+                        <p><strong>Garang Asem:</strong> Olahan ayam berkuah santan segar yang dimasak di dalam daun pisang dengan dominasi rasa asam (dari belimbing wuluh) dan pedas cabai rawit.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🎵</span>
+                        <h3>Lagu Daerah</h3>
+                        <h4>Gundul-Gundul Pacul & Gambang Suling</h4>
+                        <p><strong>Gundul-Gundul Pacul:</strong> Lagu anak-anak yang sebenarnya merupakan sindiran politik mendalam bagi para pemimpin agar tidak sombong dan amanah dalam memegang kekuasaan.</p>
+                        <p><strong>Gambang Suling:</strong> Lagu ciptaan Ki Narto Sabdo yang mengagumi keindahan suara instrumen suling bambu.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-diy" class="modul-view">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Modul 05</span>
+                    <h1>Daerah Istimewa Yogyakarta</h1>
+                </div>
+
+                <div class="geo-integration-card">
+                    <div class="geo-text-content">
+                        <div class="geo-card-title">📍 Tinjauan Geografis & Astronomis</div>
+                        <div class="geo-list-details">
+                            <p>Provinsi setingkat daerah istimewa yang terletak di bagian selatan Pulau Jawa, berbatasan langsung dengan Samudra Hindia.</p>
+                            <p><strong>Letak Astronomis:</strong> 7° 33' – 8° 12' LS dan 110° 00' – 110° 50' BT.</p>
+                            <p><strong>Batas Wilayah Kerja:</strong></p>
+                            <ul>
+                                <li><strong>Utara, Timur, Barat:</strong> Provinsi Jawa Tengah</li>
+                                <li><strong>Selatan:</strong> Samudra Hindia</li>
+                            </ul>
+                            <p><strong>Karakteristik Fisik:</strong> Bentang alamnya unik, mulai dari Gunung Merapi di utara, dataran rendah subur di tengah, hingga kawasan karst (kapur) Gunungkidul di selatan.</p>
+                        </div>
+                    </div>
+                    <div class="geo-map-frame">
+                        <img src="https://i.ibb.co.com/V0pGKkhJ/Prov-DI-Yogyakarta.jpg" alt="Peta Provinsi DI Yogyakarta">
+                    </div>
+                </div>
+
+                <div class="lms-media-box">
+                    <div class="media-box-title">📺 Video & Sumber Belajar Eksternal</div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/lCROkc2nYvM" allowfullscreen></iframe>
+                    </div>
+                    <div class="lms-action-row">
+                        <a href="https://www.canva.com/design/DAHEZ3tjSz4/MJltEfwZOapT0Pv6bY1O-Q/view?embed&meta" target="_blank" class="lms-btn btn-canva-embed">🎨 Materi Tambahan Canva</a>
+                        <a href="https://forms.gle/yvpMbUJk6uSsU5xz6" target="_blank" class="lms-btn btn-quiz-form">📝 Mulai Ujian Form Kuis</a>
+                    </div>
+                </div>
+
+                <div class="cultural-grid">
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🏛️</span>
+                        <h3>Rumah Adat</h3>
+                        <h4>Bangsal Kencono</h4>
+                        <p>Merupakan rumah adat berstruktur Joglo yang digunakan sebagai istana resmi atau kraton. Memiliki halaman yang luas, pilar-pilar megah berukir emas, dan tata ruang yang sarat akan filosofi spiritual Jawa.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🥋</span>
+                        <h3>Pakaian Adat</h3>
+                        <h4>Surjan & Kebaya Tangkepan</h4>
+                        <p><strong>Pria (Surjan):</strong> Kemeja bermotif lurik (garis-garis) atau bunga-bunga (khusus bangsawan), dipadukan dengan kain batik Yogyakarta, blangkon, dan keris.</p>
+                        <p><strong>Wanita:</strong> Kebaya Tangkepan yang anggun dipadukan dengan kain batik bermotif khas Jogja (seperti Gringsing atau Nitik).</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🍲</span>
+                        <h3>Makanan Khas</h3>
+                        <h4>Gudeg & Bakpia Pathok</h4>
+                        <p><strong>Gudeg:</strong> Sayur nangka muda yang dimasak berjam-jam dengan santan, gula jawa, dan daun jati (untuk warna cokelat alami), disajikan bersama krecek pedas dan ayam kampung.</p>
+                        <p><strong>Bakpia:</strong> Kue panggang bulat berisi kacang hijau (atau variasi modern seperti keju, cokelat, matcha) yang menjadi oleh-oleh wajib.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🎵</span>
+                        <h3>Lagu Daerah</h3>
+                        <h4>Suwe Ora Jamu & Pitik Tukung</h4>
+                        <p><strong>Suwe Ora Jamu:</strong> Lagu pendek berirama santai yang menceritakan pertemuan kembali setelah sekian lama, namun diakhiri dengan sedikit kekecewaan yang jenaka.</p>
+                        <p><strong>Pitik Tukung:</strong> Lagu anak-anak yang menggunakan filosofi hewan peliharaan untuk mengajarkan kepedulian dan kelembutan hati.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-jatim" class="modul-view">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Modul 06</span>
+                    <h1>Jawa Timur</h1>
+                </div>
+
+                <div class="geo-integration-card">
+                    <div class="geo-text-content">
+                        <div class="geo-card-title">📍 Tinjauan Geografis & Astronomis</div>
+                        <div class="geo-list-details">
+                            <p>Provinsi terluas di Pulau Jawa yang mencakup wilayah daratan utama, Selat Madura, hingga Pulau Madura dan pulau-pulau kecil di sekitarnya.</p>
+                            <p><strong>Letak Astronomis:</strong> 6° 43' – 8° 48' LS dan 111° 0' – 114° 4' BT.</p>
+                            <p><strong>Batas Wilayah Kerja:</strong></p>
+                            <ul>
+                                <li><strong>Utara:</strong> Laut Jawa</li>
+                                <li><strong>Timur:</strong> Selat Bali (Provinsi Bali)</li>
+                                <li><strong>Selatan:</strong> Samudra Hindia</li>
+                                <li><strong>Barat:</strong> Provinsi Jawa Tengah</li>
+                            </ul>
+                            <p><strong>Karakteristik Fisik:</strong> Didominasi oleh kompleks pegunungan besar (Bromo, Semeru, Arjuna) dan memiliki kawasan pesisir yang sangat strategis untuk perdagangan timur Indonesia.</p>
+                        </div>
+                    </div>
+                    <div class="geo-map-frame">
+                        <img src="https://i.ibb.co.com/fdXxjPsr/peta-jawa-timur.png" alt="Peta Provinsi Jawa Timur">
+                    </div>
+                </div>
+
+                <div class="lms-media-box">
+                    <div class="media-box-title">📺 Video & Sumber Belajar Eksternal</div>
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/cYSrmTZjJfg" allowfullscreen></iframe>
+                    </div>
+                    <div class="lms-action-row">
+                        <a href="https://www.canva.com/design/DAHJdDgoUo4/OS7UG3FYxyw3Gi2n-nfsnQ/view?embed&meta" target="_blank" class="lms-btn btn-canva-embed">🎨 Materi Tambahan Canva</a>
+                        <a href="https://forms.gle/HfFyj6d7Hz43r1PNA" target="_blank" class="lms-btn btn-quiz-form">📝 Mulai Ujian Form Kuis</a>
+                    </div>
+                </div>
+
+                <div class="cultural-grid">
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🏛️</span>
+                        <h3>Rumah Adat</h3>
+                        <h4>Joglo Situbondo</h4>
+                        <p>Meskipun mirip dengan Joglo Jawa Tengah, Joglo Situbondo memiliki bentuk yang lebih minimalis dan melambangkan ketenangan serta ketangguhan masyarakat Jawa Timur dalam menghadapi tantangan hidup.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🥋</span>
+                        <h3>Pakaian Adat</h3>
+                        <h4>Pesa'an</h4>
+                        <p><strong>Pria (Khas Madura):</strong> Kaus bergaris merah-putih horizontal (melambangkan keberanian dan ketegasan), dipadukan dengan baju dan celana hitam longgar, serta ikat kepala kain bernama Odheng.</p>
+                        <p><strong>Wanita:</strong> Mengenakan kebaya berpotongan simpel dengan warna cerah mencolok, dipadukan dengan sarung batik.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🍲</span>
+                        <h3>Makanan Khas</h3>
+                        <h4>Rawon & Rujak Cingur</h4>
+                        <p><strong>Rawon:</strong> Sup daging sapi dengan kuah hitam pekat khas yang berasal dari buah kluwek, disajikan bersama tauge pendek, telur asin, dan sambal.</p>
+                        <p><strong>Rujak Cingur:</strong> Kuliner unik berisi sayuran, buah-buahan (mangga, kedondong), tahu, tempe, dan komponen utama cingur (tulang rawan hidung sapi), disiram bumbu petis udang yang pekat.</p>
+                    </div>
+                    <div class="cultural-card">
+                        <span class="cultural-icon">🎵</span>
+                        <h3>Lagu Daerah</h3>
+                        <h4>Rek Ayo Rek & Tanduk Majeng</h4>
+                        <p><strong>Rek Ayo Rek:</strong> Lagu berirama sangat ceria, mengajak anak muda untuk jalan-jalan di malam minggu menikmati suasana kota (khususnya Surabaya).</p>
+                        <p><strong>Tanduk Majeng:</strong> Lagu khas Madura bertempo semangat namun sarat perjuangan, menceritakan tentang kehidupan nelayan yang bertaruh nyawa di laut demi menafkahi keluarga.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-game" class="modul-view">
+                <div class="modul-title-section">
+                    <span class="badge-modul">Aktivitas Interaktif</span>
+                    <h1>🎮 Ruang Game Edukasi Budaya Nusantara</h1>
+                </div>
+                <div class="lms-media-box">
+                    <p style="margin-bottom: 20px; font-size: 1rem; line-height: 1.7; color: #334155;">
+                        Mari uji pemahamanmu mengenai letak geografis dan keragaman budaya nusantara secara interaktif! Klik tombol di bawah untuk membuka simulasi petualangan game edukasi **Nusa EduTrip**.
+                    </p>
+                    <a href="https://gemini.google.com/share/4a4bf5834a20" target="_blank" class="lms-btn btn-game-play">🚀 Mainkan Game Pembelajaran</a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function switchModul(idModul) {
+            // Sembunyikan seluruh container halaman modul
+            const pages = document.querySelectorAll('.modul-view');
+            pages.forEach(page => {
+                page.classList.remove('active-page');
+            });
+
+            // Setel ulang status kelas active pada link navigasi sidebar
+            const links = document.querySelectorAll('.lesson-item a');
+            links.forEach(link => {
+                link.classList.remove('active-modul');
+            });
+
+            // Aktifkan halaman target sesuai ID modul
+            document.getElementById('page-' + idModul).classList.add('active-page');
+
+            // Berikan highlight warna biru pada link navigasi aktif
+            document.getElementById('nav-' + idModul).classList.add('active-modul');
+
+            // Melakukan auto-scroll ke panel materi utama (Sangat responsif untuk perangkat mobile)
+            window.scrollTo({
+                top: document.querySelector('.lms-main-content').offsetTop - 90,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>
